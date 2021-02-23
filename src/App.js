@@ -1,6 +1,10 @@
 import React, { useRef, useState } from 'react';
 import './App.css';
-import  pict from './man.svg'
+import  pict from './man.svg';
+import Modal from 'react-bootstrap/Modal';
+import Button from 'react-bootstrap/Button';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { GoogleLoginButton,FacebookLoginButton,GithubLoginButton } from "react-social-login-buttons";
 
 import firebase from 'firebase/app';
 import 'firebase/firestore';
@@ -52,6 +56,16 @@ function SignIn() {
     auth.signInWithPopup(provider);
   }
 
+  const signInWithGitHub = () => {
+    const provider = new firebase.auth.GithubAuthProvider();
+    auth.signInWithPopup(provider);
+  }
+
+  const signInWithFacebook = () => {
+    var provider = new firebase.auth.FacebookAuthProvider();
+    auth.signInWithPopup(provider);
+  }
+
   const anonymSinng = () => {
     firebase.auth().signInAnonymously()
   .then(() => {
@@ -63,13 +77,14 @@ function SignIn() {
     // ...
   });
   }
-
+  console.log()
   return (
-    <>
-      <button className="sign-in" onClick={signInWithGoogle}>Sign in with Google</button>
-      <button className="sign-in" onClick={anonymSinng}>anonymSinng</button>
-      <p>Do not violate the community guidelines or you will be banned for life!</p>
-    </>
+    <div className="signIn">
+      <GoogleLoginButton  onClick={signInWithGoogle} />
+      <FacebookLoginButton onClick={signInWithFacebook} />
+      <GithubLoginButton onClick={signInWithGitHub} />
+      {/*<button className="sign-in" onClick={anonymSinng}>anonymSinng</button>*/}
+    </div>
   )
 
 }
@@ -84,7 +99,7 @@ function SignOut() {
 function ChatRoom() {
   const dummy = useRef();
   const messagesRef = firestore.collection('messages');
-  const query = messagesRef.orderBy('createdAt').limit(25);
+  const query = messagesRef.orderBy('createdAt');
 
   const [messages] = useCollectionData(query, { idField: 'id' });
 
@@ -94,9 +109,11 @@ function ChatRoom() {
   const sendMessage = async (e) => {
     e.preventDefault();
 
-    const { uid, photoURL } = auth.currentUser;
+    const { displayName,uid, photoURL,email } = auth.currentUser;
 
     await messagesRef.add({
+      email,
+      displayName,
       text: formValue,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       uid,
@@ -126,16 +143,58 @@ function ChatRoom() {
   </>)
 }
 
+function Card(props){
+  return(
+      <div class="our-team">
+        <div class="picture">
+          <img class="img-fluid" src={props.photoURL}/>
+        </div>
+        <div class="team-content">
+          <h3 class="name">{props.name}</h3>
+          <h4 class="title">{props.email}</h4>
+        </div>
+      </div>
+  )
+}
+
+function MyVerticallyCenteredModal(props) {
+  console.log(props.photoURL)
+  return (
+    <Modal
+      {...props}
+      size="sm"
+      aria-labelledby="contained-modal-title-vcenter"
+      centered
+    >
+      <Modal.Body>
+      <Card
+      name = {props.name}
+      email = {props.email}
+      photoURL = {props.photoURL}
+      />
+      </Modal.Body>
+    </Modal>
+  );
+}
+
 
 function ChatMessage(props) {
-  const { text, uid, photoURL } = props.message;
+  const { displayName,text, uid, photoURL ,email} = props.message;
+  const [modalShow, setModalShow] = React.useState(false);
 
   const messageClass = uid === auth.currentUser.uid ? 'sent' : 'received';
 
   return (<>
     <div className={`message ${messageClass}`}>
-      <img src={photoURL || pict} />
-      <p>{text}</p>
+      <img className="messageImg" src={photoURL || pict} onClick={() => setModalShow(true)} />
+      <p className="messageText">{text}</p>   
+      <MyVerticallyCenteredModal
+          name = {displayName || "Anonym"}
+          email = {email}
+          photoURL = {photoURL || pict}
+        show={modalShow}
+        onHide={() => setModalShow(false)}
+      />
     </div>
   </>)
 }
