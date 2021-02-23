@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import './App.css';
+import  pict from './man.svg'
 
 import firebase from 'firebase/app';
 import 'firebase/firestore';
@@ -10,7 +11,14 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 
 firebase.initializeApp({
-  // your config
+  apiKey: "AIzaSyCyvh9LIiJF0qDuTAToeTbM-mE8x4FCXME",
+    authDomain: "shyshkovskyi-smoilovskyi-chat.firebaseapp.com",
+    projectId: "shyshkovskyi-smoilovskyi-chat",
+    storageBucket: "shyshkovskyi-smoilovskyi-chat.appspot.com",
+    messagingSenderId: "1059185687298",
+    appId: "1:1059185687298:web:c17bb8e6e3d3f4778a201b",
+    measurementId: "G-VNN0574L8Z"
+
 })
 
 const auth = firebase.auth();
@@ -25,7 +33,7 @@ function App() {
   return (
     <div className="App">
       <header>
-        <h1>⚛️🔥💬</h1>
+        <h1>S&S chat</h1>
         <SignOut />
       </header>
 
@@ -44,9 +52,22 @@ function SignIn() {
     auth.signInWithPopup(provider);
   }
 
+  const anonymSinng = () => {
+    firebase.auth().signInAnonymously()
+  .then(() => {
+    // Signed in..
+  })
+  .catch((error) => {
+    var errorCode = error.code;
+    var errorMessage = error.message;
+    // ...
+  });
+  }
+
   return (
     <>
       <button className="sign-in" onClick={signInWithGoogle}>Sign in with Google</button>
+      <button className="sign-in" onClick={anonymSinng}>anonymSinng</button>
       <p>Do not violate the community guidelines or you will be banned for life!</p>
     </>
   )
@@ -113,7 +134,7 @@ function ChatMessage(props) {
 
   return (<>
     <div className={`message ${messageClass}`}>
-      <img src={photoURL || 'https://api.adorable.io/avatars/23/abott@adorable.png'} />
+      <img src={photoURL || pict} />
       <p>{text}</p>
     </div>
   </>)
